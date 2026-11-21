@@ -42,9 +42,18 @@ The simplest production-like setup is one small VM running Docker Compose behind
 | A distributed lock (ShedLock) before running more than one backend replica | Otherwise each replica runs the nightly scan |
 | Move the login lockout state to Redis before scaling out | It's in memory per instance today |
 
-## Alternative: Render
+## Render (one click, free) - used for the live demo
 
-Create a **PostgreSQL** instance, then two **Web Services** from the repo: `backend/` (Docker, set `DB_URL`, `DB_USER`,
-`DB_PASSWORD`, `JWT_SECRET`, `SPRING_PROFILES_ACTIVE=prod`) and `frontend/` (Docker). In `frontend/nginx.conf`, change
-`proxy_pass http://backend:8080` to the backend service's internal URL. The free tier sleeps when idle, so the first
-request after a while is slow.
+`render.yaml` at the repo root is a Render Blueprint. It creates a free PostgreSQL database, the API (Docker, from
+`backend/Dockerfile`) and the frontend (static site that forwards `/api/*` to the API).
+
+1. Sign in at https://render.com with GitHub.
+2. Open https://render.com/deploy?repo=https://github.com/nagajaideep/opspilot and click **Apply**.
+   Leave `LLM_API_KEY` empty unless you want the LLM.
+3. Wait for the three resources to go live (the API's first Docker build takes ~5-10 minutes).
+4. If the API's URL is not exactly `https://opspilot-api.onrender.com` (Render adds a suffix when a name is taken),
+   edit the `/api/*` rewrite destination in `render.yaml` (or in the static site's Redirects/Rewrites settings).
+5. To enable the LLM: in the `opspilot-api` service, set `LLM_ENABLED=true` and `LLM_API_KEY`, then redeploy.
+
+Free-tier limits: the API sleeps after 15 minutes idle (first request ~1 minute), and the free database expires after
+30 days unless upgraded. Memory was tested locally with a 512 MB cap: ~270 MB used.

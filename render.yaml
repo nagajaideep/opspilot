@@ -1,0 +1,68 @@
+# Render Blueprint: one click creates the database, the API and the frontend.
+# Deploy: https://render.com/deploy?repo=https://github.com/nagajaideep/opspilot
+databases:
+  - name: opspilot-db
+    plan: free
+    databaseName: opspilot
+    user: opspilot
+
+services:
+  # ---- Spring Boot API (Docker, built from backend/Dockerfile) ----
+  - type: web
+    name: opspilot-api
+    runtime: docker
+    plan: free
+    rootDir: backend
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /actuator/health/readiness
+    envVars:
+      - key: DB_HOST
+        fromDatabase: { name: opspilot-db, property: host }
+      - key: DB_PORT
+        fromDatabase: { name: opspilot-db, property: port }
+      - key: DB_NAME
+        fromDatabase: { name: opspilot-db, property: database }
+      - key: DB_USER
+        fromDatabase: { name: opspilot-db, property: user }
+      - key: DB_PASSWORD
+        fromDatabase: { name: opspilot-db, property: password }
+      - key: DB_POOL_SIZE
+        value: "5"
+      - key: JWT_SECRET
+        generateValue: true            # Render generates a random secret
+      - key: DEMO_USERS_ENABLED
+        value: "true"                  # public demo accounts (see README)
+      - key: JAVA_OPTS                 # fit the JVM into the free tier's 512 MB
+        value: "-XX:MaxRAMPercentage=60 -XX:+UseSerialGC -Xss512k -XX:TieredStopAtLevel=1 -XX:ReservedCodeCacheSize=48m"
+      - key: LLM_ENABLED
+        value: "false"                 # set to true and add LLM_API_KEY in the dashboard to enable the LLM
+      - key: LLM_API_KEY
+        sync: false                    # secret: entered in the Render dashboard, never in git
+
+  # ---- React frontend (static site, free) ----
+  - type: web
+    name: opspilot
+    runtime: static
+    rootDir: frontend
+    buildCommand: npm ci && npm run build
+    staticPublishPath: dist
+    routes:
+      # Forward API calls to the backend (same origin for the browser, like nginx locally).
+      # If Render gives the API a different URL, update this destination to match.
+      - type: rewrite
+        source: /api/*
+        destination: https://opspilot-api.onrender.com/api/*
+      # Single-page app: every other path serves index.html
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    headers:
+      - path: /*
+        name: X-Frame-Options
+        value: DENY
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
+      - path: /*
+        name: Referrer-Policy
+        value: strict-origin-when-cross-origin

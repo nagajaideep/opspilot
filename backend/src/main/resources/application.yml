@@ -2,11 +2,12 @@ spring:
   application:
     name: opspilot
   datasource:
-    url: ${DB_URL:jdbc:postgresql://localhost:5432/opspilot}
+    # Either a full DB_URL, or the parts (Render provides host/port/name separately).
+    url: ${DB_URL:jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:opspilot}}
     username: ${DB_USER:opspilot}
     password: ${DB_PASSWORD:opspilot}
     hikari:
-      maximum-pool-size: 10
+      maximum-pool-size: ${DB_POOL_SIZE:10}
   jpa:
     open-in-view: false            # no lazy loading during JSON rendering: forces explicit fetching
     hibernate:

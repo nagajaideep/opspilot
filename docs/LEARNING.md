@@ -186,7 +186,7 @@ then Docker builds + a compose smoke test. Deployment steps are in `DEPLOY.md`.
 
 ## How AI coding tools were used
 
-This project was built with an AI coding assistant (Claude Code). Be ready to answer the job description's
+This project was built with help from an AI coding assistant. Be ready to answer the job description's
 "use GenAI coding tools responsibly" question honestly. A good answer covers:
 
 - **What it was used for**: scaffolding, boilerplate, test cases, debugging.

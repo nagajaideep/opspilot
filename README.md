@@ -47,6 +47,13 @@ flowchart LR
 Agent review flow on submit: commit `AGENT_REVIEW` → run agent **outside** any DB transaction (slow network call) →
 commit the review and move to `PENDING_APPROVAL`.
 
+## Live demo
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/nagajaideep/opspilot)
+
+Hosted on Render's free tier from [`render.yaml`](render.yaml): the API sleeps after 15 minutes idle, so the first
+request can take about a minute. Prometheus and Grafana run in the local Docker setup only.
+
 ## Quick start
 
 Requires Docker.
