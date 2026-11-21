@@ -1,0 +1,111 @@
+spring:
+  application:
+    name: opspilot
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/opspilot}
+    username: ${DB_USER:opspilot}
+    password: ${DB_PASSWORD:opspilot}
+    hikari:
+      maximum-pool-size: 10
+  jpa:
+    open-in-view: false            # no lazy loading during JSON rendering: forces explicit fetching
+    hibernate:
+      ddl-auto: validate           # Flyway owns the schema; Hibernate only checks it matches the entities
+    properties:
+      hibernate.jdbc.time_zone: UTC
+  flyway:
+    enabled: true
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+    default-property-inclusion: non_null
+
+server:
+  port: ${PORT:8080}
+  error:
+    include-stacktrace: never
+  shutdown: graceful               # finish in-flight requests on SIGTERM (containers)
+
+opspilot:
+  jwt:
+    # Dev-only default. In any shared environment set JWT_SECRET (openssl rand -base64 48).
+    secret: ${JWT_SECRET:dev-only-secret-change-me-0123456789abcdef}
+    ttl-minutes: ${JWT_TTL_MINUTES:480}
+    issuer: opspilot
+  demo-users:
+    enabled: ${DEMO_USERS_ENABLED:true}
+    password: ${DEMO_PASSWORD:opspilot-demo}
+  llm:
+    enabled: ${LLM_ENABLED:false}
+    base-url: ${LLM_BASE_URL:https://generativelanguage.googleapis.com/v1beta/openai}
+    api-key: ${LLM_API_KEY:}
+    model: ${LLM_MODEL:gemini-2.5-flash}
+    max-steps: 8
+    connect-timeout: 5s
+    read-timeout: 30s
+  policy:
+    cron: ${POLICY_CRON:0 0 2 * * *}   # 02:00 UTC daily
+
+# ---- Fault tolerance for the LLM ----
+resilience4j:
+  retry:
+    instances:
+      llm:
+        max-attempts: 3
+        wait-duration: 1s
+        enable-exponential-backoff: true
+        exponential-backoff-multiplier: 2     # 1s, 2s
+        retry-exceptions:                     # transient only; a 401 (bad key) is not retried
+          - org.springframework.web.client.ResourceAccessException
+          - org.springframework.web.client.HttpServerErrorException
+          - org.springframework.web.client.HttpClientErrorException$TooManyRequests
+  circuitbreaker:
+    instances:
+      llm:
+        sliding-window-size: 10
+        minimum-number-of-calls: 4
+        failure-rate-threshold: 50            # open when >=50% of the last calls failed
+        wait-duration-in-open-state: 30s      # then allow a few trial calls (half-open)
+        permitted-number-of-calls-in-half-open-state: 2
+
+# ---- Observability ----
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+  endpoint:
+    health:
+      probes:
+        enabled: true                         # /actuator/health/liveness and /readiness for orchestrators
+      show-details: when-authorized
+  metrics:
+    tags:
+      application: opspilot
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+
+logging:
+  pattern:
+    level: "%5p [req:%X{requestId:-}]"        # request id on every plain-text log line
+  level:
+    dev.opspilot: INFO
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+
+---
+# Production profile: JSON logs (Elastic Common Schema) that log platforms can index field by field.
+spring:
+  config:
+    activate:
+      on-profile: prod
+logging:
+  structured:
+    format:
+      console: ecs
+opspilot:
+  demo-users:
+    enabled: ${DEMO_USERS_ENABLED:false}
