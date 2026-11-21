@@ -1,0 +1,71 @@
+# One command runs the whole stack:   docker compose up --build
+#   App         http://localhost:3000   (demo users: riya, sam, alex, ada / opspilot-demo)
+#   API docs    http://localhost:8080/swagger-ui.html
+#   Prometheus  http://localhost:9090
+#   Grafana     http://localhost:3001   (admin / admin, dashboard "OpsPilot")
+name: opspilot
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: opspilot
+      POSTGRES_USER: opspilot
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-opspilot}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U opspilot -d opspilot"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  backend:
+    build: ./backend
+    image: opspilot-backend
+    depends_on:
+      db:
+        condition: service_healthy     # wait until Postgres accepts connections
+    environment:
+      DB_URL: jdbc:postgresql://db:5432/opspilot
+      DB_USER: opspilot
+      DB_PASSWORD: ${DB_PASSWORD:-opspilot}
+      JWT_SECRET: ${JWT_SECRET:-compose-demo-secret-change-me-0123456789}
+      DEMO_USERS_ENABLED: "true"
+      LLM_ENABLED: ${LLM_ENABLED:-false}
+      LLM_BASE_URL: ${LLM_BASE_URL:-https://generativelanguage.googleapis.com/v1beta/openai}
+      LLM_MODEL: ${LLM_MODEL:-gemini-2.5-flash}
+      LLM_API_KEY: ${LLM_API_KEY:-}
+    ports:
+      - "8080:8080"
+
+  frontend:
+    build: ./frontend
+    image: opspilot-frontend
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "3000:80"
+
+  prometheus:
+    image: prom/prometheus:v3.1.0
+    volumes:
+      - ./infra/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "9090:9090"
+
+  grafana:
+    image: grafana/grafana:11.4.0
+    depends_on: [prometheus]
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin}
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/opspilot.json
+    volumes:
+      - ./infra/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./infra/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    ports:
+      - "3001:3000"
+
+volumes:
+  pgdata:
