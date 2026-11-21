@@ -48,10 +48,10 @@ services:
     staticPublishPath: dist
     routes:
       # Forward API calls to the backend (same origin for the browser, like nginx locally).
-      # If Render gives the API a different URL, update this destination to match.
+      # Render added a suffix to the API name (opspilot-api was taken), hence -j3ow.
       - type: rewrite
         source: /api/*
-        destination: https://opspilot-api.onrender.com/api/*
+        destination: https://opspilot-api-j3ow.onrender.com/api/*
       # Single-page app: every other path serves index.html
       - type: rewrite
         source: /*
