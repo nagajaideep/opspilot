@@ -9,7 +9,8 @@ import java.time.Duration;
 
 /**
  * Business metrics, exposed at /actuator/prometheus and charted in Grafana.
- * Naming: Micrometer "opspilot.requests.opened" becomes Prometheus "opspilot_requests_created_total".
+ * Naming: Micrometer "opspilot.requests.opened" becomes Prometheus "opspilot_requests_opened_total".
+ * (Avoid a "created" suffix: Prometheus reserves "_created", so Micrometer strips it.)
  */
 @Component
 public class OpsMetrics {

@@ -10,6 +10,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -25,6 +26,12 @@ public class ApiExceptionHandler {
     @ExceptionHandler(NotFoundException.class)
     ProblemDetail notFound(NotFoundException e) {
         return problem(HttpStatus.NOT_FOUND, "Not found", e.getMessage());
+    }
+
+    /** Unknown URL: must be 404, not swallowed by the catch-all below as a 500. */
+    @ExceptionHandler(NoResourceFoundException.class)
+    ProblemDetail noSuchEndpoint(NoResourceFoundException e) {
+        return problem(HttpStatus.NOT_FOUND, "Not found", "No endpoint " + e.getResourcePath());
     }
 
     @ExceptionHandler(ConflictException.class)
