@@ -45,6 +45,7 @@ class WorkflowIntegrationTest extends IntegrationTestBase {
         assertThat(agent.get("riskLevel").asText()).isEqualTo("HIGH");
         assertThat(agent.get("recommendation").asText()).isEqualTo("REJECT");
         assertThat(agent.get("summary").asText()).contains("Exceeds max_servers");
+        assertThat(agent.get("plan").toString()).contains("This cluster is full (4/4)").doesNotContain("at most 0");
 
         long overlapping = createAndSubmit(sam, "CONFIG_CHANGE", "edge-cache-prod", 0, w);
         assertThat(getJson(sam, "/api/requests/" + overlapping).at("/request/agent/summary").asText())

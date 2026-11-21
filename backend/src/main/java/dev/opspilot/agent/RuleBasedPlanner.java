@@ -71,7 +71,10 @@ public class RuleBasedPlanner {
             steps.add("Do not proceed as submitted. Resolve: " + String.join("; ", a.blockers()) + ".");
             if (!f.capacity().fits() && in.type() == dev.opspilot.request.RequestType.ADD_SERVERS) {
                 long free = Math.max(0, f.capacity().maxServers() - f.capacity().currentServers());
-                steps.add("Split the change: add at most " + free + " server(s) here and request a new cluster for the rest.");
+                steps.add(free == 0
+                        ? "This cluster is full (" + f.capacity().currentServers() + "/" + f.capacity().maxServers()
+                          + "). Request a new cluster, or free capacity first with a REMOVE_SERVERS change."
+                        : "Split the change: add at most " + free + " server(s) here and request a new cluster for the rest.");
             }
             return steps;
         }
