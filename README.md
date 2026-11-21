@@ -1,16 +1,52 @@
+<div align="center">
+
 # OpsPilot
 
-**AI-assisted infrastructure change requests with mandatory human approval.**
+**AI-assisted infrastructure change management with mandatory human approval**
 
-Engineers file change requests ("add 2 servers to `search-prod` Tuesday 02:00"). An LLM agent investigates each one with
-read-only tools (capacity, conflicts, change windows, runbook search), drafts a risk assessment and rollout plan, and
-cites the runbooks it used. **Nothing runs until a human approver signs off**, and every step lands in an audit trail.
+[![CI](https://github.com/nagajaideep/opspilot/actions/workflows/ci.yml/badge.svg)](https://github.com/nagajaideep/opspilot/actions/workflows/ci.yml)
+![Tests](https://img.shields.io/badge/tests-68%20passing-2ea44f)
+![Coverage](https://img.shields.io/badge/backend%20coverage-90%25-2ea44f)
+![WCAG](https://img.shields.io/badge/WCAG%202.1%20AA-0%20axe%20violations-2ea44f)
 
-Java 21 · Spring Boot 3.5 · PostgreSQL 16 · React 18 + TypeScript · LLM tool calling · Resilience4j · Prometheus + Grafana · Docker · GitHub Actions
+![Java](https://img.shields.io/badge/Java%2021-ED8B00?logo=openjdk&logoColor=white)
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot%203.5-6DB33F?logo=springboot&logoColor=white)
+![Spring Security](https://img.shields.io/badge/Spring%20Security-JWT-6DB33F?logo=springsecurity&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL%2016-4169E1?logo=postgresql&logoColor=white)
+![React](https://img.shields.io/badge/React%2018-20232A?logo=react&logoColor=61DAFB)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)
+![LLM](https://img.shields.io/badge/LLM-tool%20calling%20%2B%20RAG-7C3AED)
+![Docker](https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white)
+![GitHub Actions](https://img.shields.io/badge/GitHub%20Actions-2088FF?logo=githubactions&logoColor=white)
+![Prometheus](https://img.shields.io/badge/Prometheus-E6522C?logo=prometheus&logoColor=white)
+![Grafana](https://img.shields.io/badge/Grafana-F46800?logo=grafana&logoColor=white)
+
+</div>
+
+Engineers file infrastructure change requests (*"add 2 servers to `search-prod` on Tuesday at 02:00"*). An **AI agent**
+checks each one against live data (cluster capacity, conflicting changes, maintenance windows), searches the runbooks,
+and drafts a risk rating and rollout plan. **Nothing runs until a human approver signs off**, and every action is
+recorded in an audit trail.
 
 ![Request detail: agent review, plan, tool trace and audit trail](docs/screenshots/05-detail-executed.png)
 
----
+## At a glance
+
+| | |
+|---|---|
+| **Backend** | Java 21, Spring Boot 3.5, Spring Security (JWT, role-based access), Spring Data JPA / Hibernate, Bean Validation, REST + OpenAPI (Swagger) |
+| **Database** | PostgreSQL 16, Flyway migrations, full-text search (`tsvector`), optimistic locking |
+| **AI** | LLM agent with function/tool calling, retrieval over runbooks (RAG), output validation, guardrails, prompt-injection defenses, offline evaluation set. Works with OpenAI, Gemini or Ollama |
+| **Frontend** | React 18, TypeScript (strict), React Router, Vite, accessible UI (WCAG 2.1 AA) |
+| **Reliability** | Resilience4j retry + circuit breaker, automatic fallback, RFC 7807 error responses, health probes |
+| **Testing** | JUnit 5, Mockito, Testcontainers (real Postgres), MockMvc, Vitest, React Testing Library, axe-core, Playwright |
+| **DevOps** | Docker (multi-stage, non-root), Docker Compose, nginx, GitHub Actions CI, Render deployment blueprint |
+| **Observability** | Micrometer, Prometheus, Grafana dashboard as code, structured JSON logs with request IDs |
+
+**By the numbers:** 68 automated tests · 90% backend line coverage · 0 accessibility violations · 5 agent tools ·
+30-case AI evaluation set · one-command local setup.
+
+**Run it:** `docker compose up --build`, then open http://localhost:3000 (sign in as `alex` / `opspilot-demo`).
 
 ## Highlights
 
@@ -47,12 +83,12 @@ flowchart LR
 Agent review flow on submit: commit `AGENT_REVIEW` → run agent **outside** any DB transaction (slow network call) →
 commit the review and move to `PENDING_APPROVAL`.
 
-## Live demo
+## Deploy your own copy
 
 [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/nagajaideep/opspilot)
 
-Hosted on Render's free tier from [`render.yaml`](render.yaml): the API sleeps after 15 minutes idle, so the first
-request can take about a minute. Prometheus and Grafana run in the local Docker setup only.
+One click on Render's free tier, from [`render.yaml`](render.yaml). The free API sleeps after 15 minutes idle, so the
+first request can take about a minute. Prometheus and Grafana run in the local Docker setup only.
 
 ## Quick start
 
