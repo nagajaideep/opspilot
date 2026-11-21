@@ -18,8 +18,14 @@
 ![LLM](https://img.shields.io/badge/LLM-tool%20calling%20%2B%20RAG-7C3AED)
 ![Docker](https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white)
 ![GitHub Actions](https://img.shields.io/badge/GitHub%20Actions-2088FF?logo=githubactions&logoColor=white)
+![Render](https://img.shields.io/badge/Render-deployed-46E3B7?logo=render&logoColor=black)
 ![Prometheus](https://img.shields.io/badge/Prometheus-E6522C?logo=prometheus&logoColor=white)
 ![Grafana](https://img.shields.io/badge/Grafana-F46800?logo=grafana&logoColor=white)
+
+### [🚀 Live demo: opspilot-3vu3.onrender.com](https://opspilot-3vu3.onrender.com)
+
+Sign in as **`alex`** (approver) or **`riya`** (requester), password **`opspilot-demo`**
+<br/><sub>Free hosting: if it has been idle, the first load takes about a minute while the server wakes up.</sub>
 
 </div>
 
@@ -46,7 +52,7 @@ recorded in an audit trail.
 **By the numbers:** 68 automated tests · 90% backend line coverage · 0 accessibility violations · 5 agent tools ·
 30-case AI evaluation set · one-command local setup.
 
-**Run it:** `docker compose up --build`, then open http://localhost:3000 (sign in as `alex` / `opspilot-demo`).
+**Try it:** use the [live demo](https://opspilot-3vu3.onrender.com), or run it locally with `docker compose up --build` and open http://localhost:3000.
 
 ## Highlights
 
